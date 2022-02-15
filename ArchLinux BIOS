@@ -1,0 +1,59 @@
+loadkeys la-latin1
+timedatectl set-ntp true
+
+cfdisk
+**En BIOS seleccionar Schema "DOS" **
+
+sda1 512MB 83 Linux boot
+sda2 3GB      SWAP
+sda3 *     83 Linux 
+
+lsblk
+mkfs.fat -F32 /dev/sda1
+mkswap /dev/sda2
+swapon /dev/sda2
+mkfs.btrfs /dev/sda3
+
+mount /dev/sda3 /mnt
+
+ls 
+ls /
+mkdir /mnt/boot
+mount /dev/sda1 /mnt/boot/
+nano /etc/pacman.d/mirrorlist
+
+pacstrap /mnt base base-devel linux linux-firmware nano
+genfstab -U  /mnt >> /mnt/etc/fstab
+nano /mnt/etc/fstab
+
+arch-chroot /mnt
+
+ln -sf /usr/share/zoneinfo/Canada/Eastern /etc/localtime
+hwclock --systohc
+nano /etc/localgen                                     
+echo LANG=en_US.UTF-8 > /etc/locale.conf
+echo KEYMAP=la-latin1 > /etc/vconsole.conf
+echo gtt6200 > /etc/hostname
+
+
+nano /etc/hosts
+
+127.0.0.1            localhost
+::1                  localhost
+127.0.0.1            Archlinux.localdomain    Archlinux
+
+
+
+pacman -S networkmanager
+systemctl enable NetworkManager
+
+passwd 
+
+pacman -S grub-bios
+grub-install --target=i386-pc --recheck /dev/sda
+cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
+pacman -S os-prober
+grub-mkconfig -o /boot/grub/grub.cfg
+
+unmount -R /mnt                                        
+reboot
